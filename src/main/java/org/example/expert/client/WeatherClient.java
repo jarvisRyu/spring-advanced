@@ -23,16 +23,16 @@ public class WeatherClient {
     }
 
     public String getTodayWeather() {
-        ResponseEntity<WeatherDto[]> responseEntity =
-                restTemplate.getForEntity(buildWeatherApiUri(), WeatherDto[].class);
+        ResponseEntity<WeatherDto[]> responseEntity = //WeatherDto : data,weather
+                restTemplate.getForEntity(buildWeatherApiUri(), WeatherDto[].class);//GET요청 후 응답+상태코드 받음
 
-        WeatherDto[] weatherArray = responseEntity.getBody();
-        if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+        WeatherDto[] weatherArray = responseEntity.getBody(); //{{"date":"2025-04-18","weather":"sunny"},{...}}
+        if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {//
             throw new ServerException("날씨 데이터를 가져오는데 실패했습니다. 상태 코드: " + responseEntity.getStatusCode());
-        } else {
-            if (weatherArray == null || weatherArray.length == 0) {
-                throw new ServerException("날씨 데이터가 없습니다.");
-            }
+        }// else {  조건1이 거짓일 때만 다음 조건이 발생. 조건1도 검증하고 조건 2도 독립적으로 검증하기위해 else제거
+        if (weatherArray == null || weatherArray.length == 0) {
+            throw new ServerException("날씨 데이터가 없습니다.");
+//            }
         }
 
         String today = getCurrentDate();
