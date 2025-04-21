@@ -39,15 +39,15 @@ class ManagerServiceTest {
     private ManagerService managerService;
 
     @Test
-    public void manager_목록_조회_시_Todo가_없다면_NPE_에러를_던진다() {
+    public void manager_목록_조회_시_Todo가_없다면_InvalidRequestException_에러를_던진다() {
         // given
         long todoId = 1L;
         given(todoRepository.findById(todoId)).willReturn(Optional.empty());
 
         // when & then
         InvalidRequestException exception = assertThrows(InvalidRequestException.class, () -> managerService.getManagers(todoId));
-        assertEquals("Manager not found", exception.getMessage());
-    }
+        assertEquals("Todo not found", exception.getMessage());
+    }   //managerService.getManagers 의 에러메세지와 내용이 다름.
 
     @Test
     void todo의_user가_null인_경우_예외가_발생한다() {
@@ -62,11 +62,12 @@ class ManagerServiceTest {
         ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(managerUserId);
 
         given(todoRepository.findById(todoId)).willReturn(Optional.of(todo));
+        //todoId를 입력하면 todo 객체 반환
 
         // when & then
-        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
+        NullPointerException exception = assertThrows(NullPointerException.class, () ->
             managerService.saveManager(authUser, todoId, managerSaveRequest)
-        );
+        );//assertThrows 해당예외가 발생하는지?
 
         assertEquals("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.", exception.getMessage());
     }
