@@ -5,7 +5,7 @@ import org.example.expert.domain.comment.dto.response.CommentSaveResponse;
 import org.example.expert.domain.comment.entity.Comment;
 import org.example.expert.domain.comment.repository.CommentRepository;
 import org.example.expert.domain.common.dto.AuthUser;
-import org.example.expert.domain.common.exception.ServerException;
+import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.entity.User;
@@ -42,9 +42,12 @@ class CommentServiceTest {
 
         given(todoRepository.findById(anyLong())).willReturn(Optional.empty());
 
+        //Expected :class org.example.expert.domain.common.exception.ServerException
+        //Actual   :class org.example.expert.domain.common.exception.InvalidRequestException
+        //실제에러와 예상에러가 다름.
         // when
-        ServerException exception = assertThrows(ServerException.class, () -> {
-            commentService.saveComment(authUser, todoId, request);
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () -> {//throws로 ServerException 예외가 발생할 수 있음을 명시
+            commentService.saveComment(authUser, todoId, request); //실제 메서드saveComment는 InvalidRequestException를 날려주있다.
         });
 
         // then
