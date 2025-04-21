@@ -20,44 +20,50 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private static final String BEARER_PREFIX = "Bearer ";
+    private static final String BEARER_PREFIX = "Bearer "; //헤더 토큰앞에 붙는 고정문자열
     private static final long TOKEN_TIME = 60 * 60 * 1000L; // 60분
 
     @Value("${jwt.secret.key}")
-    private String secretKey;
-    private Key key;
-    private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+    private String secretKey; //application.yml,properties 에서 설정한 값을 주입.
+    private Key key; //디코딩한 실제 key 저장할 객체
+    private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256; //암호화할 알고리즘
 
-    @PostConstruct
+
+    @PostConstruct  //jwtUtil bean 생성 후에 자동으로 메서드 실행
     public void init() {
-        byte[] bytes = Base64.getDecoder().decode(secretKey);
-        key = Keys.hmacShaKeyFor(bytes);
+        byte[] bytes = Base64.getDecoder().decode(secretKey);//암호화되있는 jwt.secret.key 값을 디코딩
+        key = Keys.hmacShaKeyFor(bytes); //key객체에 넣음
     }
 
-    public String createToken(Long userId, String email, UserRole userRole) {
-        Date date = new Date();
+    //토큰생성
+    public String createToken(Long userId, String email, UserRole userRole) {//사용자 아이디,이메일,권한
+        Date date = new Date(); //현재시각 date 생성
 
-        return BEARER_PREFIX +
+        return BEARER_PREFIX + //"Bearer + Jwts 생성
                 Jwts.builder()
-                        .setSubject(String.valueOf(userId))
-                        .claim("email", email)
-                        .claim("userRole", userRole)
-                        .setExpiration(new Date(date.getTime() + TOKEN_TIME))
+                        .setSubject(String.valueOf(userId)) //사용자id
+                        //claim= 토큰에 들어가는 정보
+                        .claim("email", email)        //사용자 email
+                        .claim("userRole", userRole)  //사용자 권한
+                        .setExpiration(new Date(date.getTime() + TOKEN_TIME)) //현재시간+ 60분 -만료시간설정
                         .setIssuedAt(date) // 발급일
                         .signWith(key, signatureAlgorithm) // 암호화 알고리즘
-                        .compact();
+                        .compact(); //JWT 문자열을 만들어 반환
+                        //return "Bearer eyJhb... 반환
     }
-
+    //토큰값 꺼내기
     public String substringToken(String tokenValue) {
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
-            return tokenValue.substring(7);
+            //hasText:	return (str != null && !str.isBlank()); null,공백검사
+            //그리고 "Bearer"로 시작하는지 검사
+            return tokenValue.substring(7); //Bearer 를 때어냄
         }
-        throw new ServerException("Not Found Token");
+        throw new ServerException("Not Found Token"); //그 외엔 예외발생
     }
-
+    //토큰 변환(파싱)
     public Claims extractClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(key) //디코딩한 key
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
